@@ -1,0 +1,62 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+int segPins[8] = {2,3,4,5,6,7,8,9};
+String segName[8] = {"A","B","C","D","E","F","G","DP"};
+int segDisplayPin[8] = {7,6,4,2,1,9,10,5};
+
+int lastSeg = -1;
+
+void setup() {
+
+  for(int i=0;i<8;i++)
+    pinMode(segPins[i], INPUT); // no pullup
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+
+  display.setCursor(10,10);
+  display.print("SEG TEST");
+  display.setCursor(10,35);
+  display.print("Touch 5V");
+  display.display();
+}
+
+void loop() {
+
+  for(int i=0;i<8;i++)
+  {
+    if(digitalRead(segPins[i]) == HIGH)
+    {
+      if(lastSeg != i)
+      {
+        display.clearDisplay();
+
+        display.setTextSize(3);
+        display.setCursor(0,10);
+        display.print(segName[i]);
+
+        display.setTextSize(1);
+        display.setCursor(0,50);
+        display.print("Pin: ");
+        display.print(segDisplayPin[i]);
+
+        display.display();
+
+        lastSeg = i;
+      }
+      return;
+    }
+  }
+
+  lastSeg = -1;
+}
