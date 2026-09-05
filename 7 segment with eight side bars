@@ -1,0 +1,85 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// Arduino pins
+int segPins[8] = {2,3,4,5,6,7,8,9};
+String segName[8] = {"A","B","C","D","E","F","G","DP"};
+int segDisplayPin[8] = {7,6,4,2,1,9,10,5};
+
+int lastSeg = -1;
+
+// Draw 7-seg outline
+void drawBase8() {
+  display.drawRect(30, 5, 40, 5, WHITE);   // A
+  display.drawRect(70, 10, 5, 20, WHITE);  // B
+  display.drawRect(70, 35, 5, 20, WHITE);  // C
+  display.drawRect(30, 55, 40, 5, WHITE);  // D
+  display.drawRect(25, 35, 5, 20, WHITE);  // E
+  display.drawRect(25, 10, 5, 20, WHITE);  // F
+  display.drawRect(30, 30, 40, 5, WHITE);  // G
+  display.drawCircle(80, 58, 3, WHITE);    // DP
+}
+
+// Highlight segment
+void highlightSegment(int s) {
+  switch(s) {
+    case 0: display.fillRect(30, 5, 40, 5, WHITE); break;
+    case 1: display.fillRect(70, 10, 5, 20, WHITE); break;
+    case 2: display.fillRect(70, 35, 5, 20, WHITE); break;
+    case 3: display.fillRect(30, 55, 40, 5, WHITE); break;
+    case 4: display.fillRect(25, 35, 5, 20, WHITE); break;
+    case 5: display.fillRect(25, 10, 5, 20, WHITE); break;
+    case 6: display.fillRect(30, 30, 40, 5, WHITE); break;
+    case 7: display.fillCircle(80, 58, 3, WHITE); break;
+  }
+}
+
+void setup() {
+  for(int i=0;i<8;i++)
+    pinMode(segPins[i], INPUT);
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+}
+
+void loop() {
+
+  int currentSeg = -1;
+
+  for(int i=0;i<8;i++) {
+    if(digitalRead(segPins[i]) == HIGH) {
+      currentSeg = i;
+      break;
+    }
+  }
+
+  if(currentSeg != lastSeg) {
+
+    display.clearDisplay();
+    drawBase8();
+
+    if(currentSeg != -1) {
+
+      highlightSegment(currentSeg);
+
+      // BIG LETTER
+      display.setTextSize(3);
+      display.setCursor(0, 20);
+      display.print(segName[currentSeg]);
+
+      // Pin info
+      display.setTextSize(1);
+      display.setCursor(0, 55);
+      display.print("Pin:");
+      display.print(segDisplayPin[currentSeg]);
+    }
+
+    display.display();
+    lastSeg = currentSeg;
+  }
+}
